@@ -278,7 +278,7 @@ export default function Design9() {
                         </div>
 
                         <div className="relative">
-                            <h1 className="text-8xl font-black mb-6 pb-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent transform -rotate-2"
+                            <h1 className="text-4xl md:text-6xl lg:text-8xl font-black mb-6 pb-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent transform -rotate-2"
                                 style={{fontFamily: 'Dancing Script, cursive'}}>
                                 Gréti &  Marci
                             </h1>
@@ -387,7 +387,7 @@ export default function Design9() {
 
                 <div className="relative container mx-auto px-6 max-w-6xl">
                     <div className="text-center mb-16">
-                        <h2 className="text-7xl font-black text-white mb-6 transform -rotate-1"
+                        <h2 className="text-3xl md:text-5xl lg:text-7xl font-black text-white mb-6 transform -rotate-1"
                             style={{fontFamily: 'Dancing Script, cursive'}}>
                             Röpke 11 év után
                         </h2>
@@ -418,7 +418,7 @@ export default function Design9() {
             >
                 <div className="container mx-auto px-6 max-w-6xl">
                     <div className="text-center mb-16">
-                        <h2 className="text-7xl font-black bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent mb-6 transform rotate-1"
+                        <h2 className="text-3xl md:text-5xl lg:text-7xl font-black bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent mb-6 transform rotate-1"
                             style={{fontFamily: 'Dancing Script, cursive'}}>
                             Szeretettel várunk Téged az Esküvönkön!
                         </h2>
@@ -600,7 +600,7 @@ export default function Design9() {
             >
                 <div className="container mx-auto px-6 max-w-4xl">
                     <div className="text-center mb-16">
-                        <h2 className="text-7xl p-12 font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-6"
+                        <h2 className="text-3xl md:text-5xl lg:text-7xl p-6 md:p-12 font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-6"
                             style={{fontFamily: 'Dancing Script, cursive'}}>
                             A Nagy Nap Menetrendje
                         </h2>
@@ -721,7 +721,7 @@ export default function Design9() {
 
                 <div className="relative container mx-auto px-6 max-w-4xl">
                     <div className="text-center mb-12">
-                        <h2 className="text-7xl font-black bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 bg-clip-text text-transparent mb-6 pb-6 transform -rotate-1"
+                        <h2 className="text-3xl md:text-5xl lg:text-7xl font-black bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 bg-clip-text text-transparent mb-6 pb-6 transform -rotate-1"
                             style={{fontFamily: 'Dancing Script, cursive'}}>
                             Várjuk visszajelzésed!
                         </h2>
