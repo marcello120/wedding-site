@@ -98,14 +98,25 @@ function CountdownTimer({targetDate}: { targetDate: string }) {
     );
 }
 
+const GUEST_NAMES: string[] = [];
+
 export default function Design9() {
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        attendance: '',
-        meal: '',
-        dietary: ''
-    });
+    const [formData, setFormData] = useState({ name: '', contact: '', attendance: '', guests: 1, comment: '' });
+    const [nameSuggestions, setNameSuggestions] = useState<string[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [formLocked, setFormLocked] = useState(false);
+    const nameInputRef = useRef<HTMLDivElement>(null);
+
+    // Hydrate state from localStorage on client
+    useEffect(() => {
+        const saved = localStorage.getItem('rsvp-data');
+        if (saved) setFormData(JSON.parse(saved));
+        if (localStorage.getItem('rsvp-submitted')) {
+            setSubmitStatus('success');
+            setFormLocked(true);
+        }
+    }, []);
 
     // Scroll animations for each section
     const heroAnimation = useScrollAnimation();
@@ -135,10 +146,52 @@ export default function Design9() {
         }
     }, []);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        alert('RSVP submitted successfully!');
+    // Close suggestions on click outside
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (nameInputRef.current && !nameInputRef.current.contains(e.target as Node)) {
+                setShowSuggestions(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleNameChange = (value: string) => {
+        setFormData({...formData, name: value});
+        if (value.length > 0) {
+            const filtered = GUEST_NAMES.filter(name =>
+                name.toLowerCase().includes(value.toLowerCase())
+            );
+            setNameSuggestions(filtered);
+            setShowSuggestions(filtered.length > 0);
+        } else {
+            setShowSuggestions(false);
+        }
     };
+
+    const selectName = (name: string) => {
+        setFormData({...formData, name});
+        setShowSuggestions(false);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSubmitStatus('loading');
+        try {
+            await fetch('https://script.google.com/macros/s/AKfycbxPj2_kUfrY_dnNjfTjmeI5RS0aWcAHPMFwDA66VETBX6VelaTX5JfsDCM112c2TKS5hQ/exec', {
+                method: 'POST',
+                body: JSON.stringify(formData),
+            });
+            localStorage.setItem('rsvp-data', JSON.stringify(formData));
+            localStorage.setItem('rsvp-submitted', 'true');
+            setSubmitStatus('success');
+            setFormLocked(true);
+        } catch {
+            setSubmitStatus('error');
+        }
+    };
+
 
     return (
         <div
@@ -179,7 +232,7 @@ export default function Design9() {
                         <Link href="/"
                               className="text-pink-600 hover:text-pink-700 transition-colors font-bold flex items-center transform hover:scale-105">
                             <span className="mr-2 text-2xl">💖</span>
-                            Marci & Gréti
+                            Gréti & Marci
                         </Link>
                         <div className="hidden md:flex space-x-4">
                             <a href="#home"
@@ -225,7 +278,7 @@ export default function Design9() {
                         <div className="relative">
                             <h1 className="text-8xl font-black mb-6 pb-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent transform -rotate-2"
                                 style={{fontFamily: 'Dancing Script, cursive'}}>
-                                Marci & Gréti
+                                Gréti &  Marci
                             </h1>
                             <div
                                 className="absolute -top-4 -right-4 text-4xl animate-spin transition-transform duration-100"
@@ -409,7 +462,7 @@ export default function Design9() {
                     <div className="text-center mb-16">
                         <h2 className="text-7xl font-black bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent mb-6 transform rotate-1"
                             style={{fontFamily: 'Dancing Script, cursive'}}>
-                            Szeretettel várunk Téged az Esküvőnkön!
+                            Szeretettel várunk Téged az Esküvönkön!
                         </h2>
                         <div className="flex justify-center space-x-3">
                             <span className="text-5xl animate-spin" style={{animationDuration: '2s'}}>🎊</span>
@@ -571,7 +624,9 @@ export default function Design9() {
                                     <h4 className="text-2xl font-black"> Ha kell Szállás</h4>
                                 </div>
                                 <div className="space-y-2 text-xl font-bold">
-                                    <p><span className="text-yellow-200 text-m">Akkor:</span> Ne keljen</p>
+                                    <p><span className="text-yellow-200 text-m">Akkor:</span> Ne keljen.</p>
+                                    <p><span className="text-yellow-200 text-m">Ha nagyon kell:</span> Keresd fel pesti rokonaid/barátaid vagy szólj nekünk.</p>
+
                                 </div>
                                 {/*<button className="mt-4 w-full bg-white text-purple-600 py-2 font-black rounded-xl hover:bg-yellow-200 transition-colors">*/}
                                 {/*  BOOK THE FUN!*/}
@@ -580,23 +635,130 @@ export default function Design9() {
 
 
                             <div
-                                className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 transform -rotate-2 hover:rotate-0 transition-transform">
+                                className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 transform -rotate-2 gap-3 hover:rotate-0 transition-transform">
                                 <div className="text-center mb-4">
                                     <div className="text-4xl mb-2 animate-spin" style={{animationDuration: '3s'}}>🚗
                                     </div>
                                     <h4 className="text-2xl font-black">Fuvar</h4>
                                 </div>
                                 <div className="space-y-2 text-xl font-bold">
-                                    <p><span className="text-yellow-200">Oda: </span>Könyörögd be magad egy nyugger
-                                        rokon kocsijába</p>
+                                    <p><span className="text-yellow-200">Oda: </span>A helyszínek jól megközelíthetők tömegközlekedéssel (Örs vezér teréről: 90E, 161 vagy 169E busz). Vagy kérd be magad egy absztinens kocsijába.</p>
                                 </div>
                                 <div className="space-y-2 text-xl font-bold">
-                                    <p><span className="text-yellow-200">Vissza: </span>Hivj taxit</p>
+                                    <p><span className="text-yellow-200">Közben: </span>A templom és a kastély közt gondoskodunk saját buszról</p>
                                 </div>
                                 {/*<div className="mt-4 text-center text-yellow-200 text-sm font-black">*/}
                                 {/*  "Let's keep the party going safely!" 🎉*/}
                                 {/*</div>*/}
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Wedding Timeline */}
+            <section
+                id="timeline"
+                className="py-20 bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50"
+            >
+                <div className="container mx-auto px-6 max-w-4xl">
+                    <div className="text-center mb-16">
+                        <h2 className="text-7xl p-12 font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-6"
+                            style={{fontFamily: 'Dancing Script, cursive'}}>
+                            A Nagy Nap Menetrendje
+                        </h2>
+                    </div>
+
+                    <div className="relative">
+                        {/* Vertical line */}
+                        <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gradient-to-b from-pink-400 via-purple-400 to-blue-400 rounded-full"></div>
+
+                        {/* Timeline items */}
+                        <div className="space-y-12">
+                            {/* 15:00 */}
+                            <div className="relative flex items-center">
+                                <div className="w-1/2 pr-8 text-right">
+                                    <div className="bg-gradient-to-r from-pink-200 to-pink-300 rounded-2xl p-4 transform -rotate-1 hover:rotate-0 transition-transform shadow-lg inline-block">
+                                        <p className="font-black text-pink-800 text-xl">15:00</p>
+                                        <p className="font-bold text-pink-700">Gyülekezés a templomnál</p>
+                                    </div>
+                                </div>
+                                <div className="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-white rounded-full border-4 border-pink-400 flex items-center justify-center shadow-lg z-10">
+                                    <span className="text-xl">⛪</span>
+                                </div>
+                                <div className="w-1/2 pl-8"></div>
+                            </div>
+
+                            {/* 15:30 */}
+                            <div className="relative flex items-center">
+                                <div className="w-1/2 pr-8"></div>
+                                <div className="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-white rounded-full border-4 border-purple-400 flex items-center justify-center shadow-lg z-10">
+                                    <span className="text-xl">💒</span>
+                                </div>
+                                <div className="w-1/2 pl-8">
+                                    <div className="bg-gradient-to-r from-purple-200 to-purple-300 rounded-2xl p-4 transform rotate-1 hover:rotate-0 transition-transform shadow-lg inline-block">
+                                        <p className="font-black text-purple-800 text-xl">15:30</p>
+                                        <p className="font-bold text-purple-700">Egyházi szertartás</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 16:30 */}
+                            <div className="relative flex items-center">
+                                <div className="w-1/2 pr-8 text-right">
+                                    <div className="bg-gradient-to-r from-orange-200 to-yellow-200 rounded-2xl p-4 transform rotate-1 hover:rotate-0 transition-transform shadow-lg inline-block">
+                                        <p className="font-black text-orange-800 text-xl">16:30</p>
+                                        <p className="font-bold text-orange-700">Vendégvárás a kastélyba</p>
+                                    </div>
+                                </div>
+                                <div className="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-white rounded-full border-4 border-orange-400 flex items-center justify-center shadow-lg z-10">
+                                    <span className="text-xl">🚗</span>
+                                </div>
+                                <div className="w-1/2 pl-8"></div>
+                            </div>
+
+                            {/* 17:00 */}
+                            <div className="relative flex items-center">
+                                <div className="w-1/2 pr-8"></div>
+                                <div className="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-white rounded-full border-4 border-blue-400 flex items-center justify-center shadow-lg z-10">
+                                    <span className="text-xl">💍</span>
+                                </div>
+                                <div className="w-1/2 pl-8">
+                                    <div className="bg-gradient-to-r from-blue-200 to-blue-300 rounded-2xl p-4 transform -rotate-1 hover:rotate-0 transition-transform shadow-lg inline-block">
+                                        <p className="font-black text-blue-800 text-xl">17:00</p>
+                                        <p className="font-bold text-blue-700">Polgári szertartás</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 18:00 */}
+                            <div className="relative flex items-center">
+                                <div className="w-1/2 pr-8 text-right">
+                                    <div className="bg-gradient-to-r from-green-200 to-emerald-200 rounded-2xl p-4 transform -rotate-1 hover:rotate-0 transition-transform shadow-lg inline-block">
+                                        <p className="font-black text-green-800 text-xl">19:00</p>
+                                        <p className="font-bold text-green-700">Vacsora</p>
+                                    </div>
+                                </div>
+                                <div className="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-white rounded-full border-4 border-green-400 flex items-center justify-center shadow-lg z-10">
+                                    <span className="text-xl">🍽️</span>
+                                </div>
+                                <div className="w-1/2 pl-8"></div>
+                            </div>
+
+                            {/* 20:00 */}
+                            <div className="relative flex items-center">
+                                <div className="w-1/2 pr-8"></div>
+                                <div className="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 bg-white rounded-full border-4 border-yellow-400 flex items-center justify-center shadow-lg z-10">
+                                    <span className="text-xl">🎉</span>
+                                </div>
+                                <div className="w-1/2 pl-8">
+                                    <div className="bg-gradient-to-r from-yellow-200 to-amber-200 rounded-2xl p-4 transform rotate-1 hover:rotate-0 transition-transform shadow-lg inline-block">
+                                        <p className="font-black text-yellow-800 text-xl">21:00</p>
+                                        <p className="font-bold text-yellow-700">Buli Hajnalig</p>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -632,15 +794,28 @@ export default function Design9() {
                             <span className="text-5xl animate-bounce" style={{animationDelay: '0.5s'}}>💌</span>
                         </div>
                         <p className="text-2xl font-bold text-purple-600 transform rotate-1">
-                            Legkésőbb Junius 1ig!
+                            Legkésőbb Augusztus 8.-ig!
                         </p>
                     </div>
 
                     <div
-                        className="bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 rounded-3xl p-10 shadow-2xl border-4 border-rainbow transform rotate-1  transition-transform duration-500">
+                        className="bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 rounded-3xl p-10 shadow-2xl border-4 border-rainbow transform rotate-1  transition-transform duration-500 relative">
+                        {formLocked && (
+                            <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] rounded-3xl z-40 flex flex-col items-center justify-center space-y-4">
+                                <div className="text-5xl">✅</div>
+                                <p className="text-2xl font-black text-green-600 text-center px-4">Már visszajeleztél!</p>
+                                <p className="text-lg font-bold text-purple-600 text-center px-4">Ha módosítani szeretnéd, kattints ide:</p>
+                                <button
+                                    type="button"
+                                    onClick={() => { setFormLocked(false); setSubmitStatus('idle'); }}
+                                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-3 rounded-2xl text-lg font-black hover:scale-105 transition-transform shadow-xl"
+                                >🔓 Módosítás
+                                </button>
+                            </div>
+                        )}
                         <form onSubmit={handleSubmit} className="space-y-8">
                             <div className="grid md:grid-cols-2 gap-8">
-                                <div className="transform -rotate-1 hover:rotate-0 transition-transform">
+                                <div className="transform -rotate-1 hover:rotate-0 transition-transform relative z-10" ref={nameInputRef}>
                                     <label className="block text-purple-800 font-black mb-3 text-lg flex items-center">
                                         <span className="text-2xl mr-2 ">🤠</span>
                                         Név
@@ -648,23 +823,38 @@ export default function Design9() {
                                     <input
                                         type="text"
                                         className="w-full p-4 border-4 border-pink-300 rounded-2xl focus:outline-none focus:border-purple-500 bg-white/90 text-lg font-bold transform hover:scale-105 transition-transform"
-                                        placeholder="Név"
+                                        placeholder="Vendég vagy család neve"
                                         value={formData.name}
-                                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                        onChange={(e) => handleNameChange(e.target.value)}
+                                        onFocus={() => { if (formData.name) handleNameChange(formData.name); }}
                                         required
+                                        autoComplete="off"
                                     />
+                                    {showSuggestions && (
+                                        <ul className="absolute z-50 w-full mt-2 bg-white border-4 border-pink-300 rounded-2xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto">
+                                            {nameSuggestions.map((name) => (
+                                                <li
+                                                    key={name}
+                                                    className="px-4 py-3 text-lg font-bold text-purple-800 cursor-pointer hover:bg-pink-100 transition-colors"
+                                                    onMouseDown={() => selectName(name)}
+                                                >
+                                                    {name}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
                                 </div>
                                 <div className="transform rotate-1 hover:rotate-0 transition-transform">
                                     <label className="block text-purple-800 font-black mb-3 text-lg flex items-center">
                                         <span className="text-2xl mr-2 animate-pulse">📧</span>
-                                        email cim
+                                        Email vagy telefonszám
                                     </label>
                                     <input
-                                        type="email"
+                                        type="text"
                                         className="w-full p-4 border-4 border-blue-300 rounded-2xl focus:outline-none focus:border-purple-500 bg-white/90 text-lg font-bold transform hover:scale-105 transition-transform"
-                                        placeholder="email@gmail.com"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                        placeholder="email@gmail.com vagy +36 20 123 4567"
+                                        value={formData.contact}
+                                        onChange={(e) => setFormData({...formData, contact: e.target.value})}
                                         required
                                     />
                                 </div>
@@ -678,58 +868,61 @@ export default function Design9() {
                                 </label>
                                 <div className="flex gap-6">
                                     <label
-                                        className="flex items-center text-purple-700 font-bold cursor-pointer transform hover:scale-105 transition-transform">
+                                        className={`flex-1 flex items-center justify-center gap-3 cursor-pointer rounded-2xl border-4 p-5 text-xl font-black transition-all duration-300 transform hover:scale-105 ${
+                                            formData.attendance === 'yes'
+                                                ? 'border-green-400 bg-green-100 text-green-700 scale-105 shadow-lg shadow-green-200'
+                                                : 'border-pink-300 bg-white/80 text-purple-700 hover:border-green-300'
+                                        }`}>
                                         <input
                                             type="radio"
                                             name="attendance"
                                             value="yes"
                                             checked={formData.attendance === 'yes'}
                                             onChange={(e) => setFormData({...formData, attendance: e.target.value})}
-                                            className="mr-3 w-5 h-5 text-purple-600"
+                                            className="hidden"
                                             required
                                         />
-                                        <span>Igen 🎉</span>
+                                        <span className="text-3xl">🎉</span>
+                                        <span>Igen</span>
                                     </label>
                                     <label
-                                        className="flex items-center text-purple-700 font-bold cursor-pointer transform hover:scale-105 transition-transform">
+                                        className={`flex-1 flex items-center justify-center gap-3 cursor-pointer rounded-2xl border-4 p-5 text-xl font-black transition-all duration-300 transform hover:scale-105 ${
+                                            formData.attendance === 'no'
+                                                ? 'border-red-400 bg-red-100 text-red-700 scale-105 shadow-lg shadow-red-200'
+                                                : 'border-pink-300 bg-white/80 text-purple-700 hover:border-red-300'
+                                        }`}>
                                         <input
                                             type="radio"
                                             name="attendance"
                                             value="no"
                                             checked={formData.attendance === 'no'}
                                             onChange={(e) => setFormData({...formData, attendance: e.target.value})}
-                                            className="mr-3 w-5 h-5 text-purple-600"
+                                            className="hidden"
                                             required
                                         />
-                                        <span>Nem 😢</span>
+                                        <span className="text-3xl">😢</span>
+                                        <span>Nem</span>
                                     </label>
                                 </div>
                             </div>
 
                             {formData.attendance === 'yes' && (
                                 <>
-                                    <div className="transform -rotate-1 hover:rotate-1 transition-transform">
+                                    <div className="transform rotate-1 hover:-rotate-1 transition-transform">
                                         <label
                                             className="block text-purple-800 font-black mb-3 text-lg flex items-center">
-                                            <span className="text-2xl mr-2 animate-bounce">🍕</span>
-                                            Kaja Választás
+                                            <span className="text-2xl mr-2 animate-bounce">👥</span>
+                                            Hány fő?
                                         </label>
-                                        <select
-                                            className="w-full p-4 pr-12 border-4 border-orange-300 rounded-2xl focus:outline-none focus:border-purple-500 bg-white/90 text-lg font-bold transform hover:scale-105 transition-transform appearance-none cursor-pointer"
-                                            style={{
-                                                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23f97316'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                                                backgroundRepeat: 'no-repeat',
-                                                backgroundPosition: 'right 1rem center',
-                                                backgroundSize: '1.5rem'
-                                            }}
-                                            value={formData.meal}
-                                            onChange={(e) => setFormData({...formData, meal: e.target.value})}
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            max="10"
+                                            className="w-full p-4 border-4 border-purple-300 rounded-2xl focus:outline-none focus:border-purple-500 bg-white/90 text-lg font-bold transform hover:scale-105 transition-transform"
+                                            value={formData.guests}
+                                            onChange={(e) => setFormData({...formData, guests: parseInt(e.target.value) || 1})}
                                             required
-                                        >
-                                            <option value="">Kaja?</option>
-                                            <option value="gourmet-burger">🍔 Eszek kaját</option>
-                                            <option value="veggie-magic">🥗 Vega vagyok</option>
-                                        </select>
+                                        />
                                     </div>
 
                                     <div className="transform rotate-1 hover:-rotate-1 transition-transform">
@@ -742,8 +935,8 @@ export default function Design9() {
                                             className="w-full p-4 border-4 border-yellow-300 rounded-2xl focus:outline-none focus:border-purple-500 bg-white/90 text-lg font-bold transform hover:scale-105 transition-transform"
                                             rows={4}
                                             placeholder="Ha van valami extra amit el szeretnél mondnai itt megteheted"
-                                            value={formData.dietary}
-                                            onChange={(e) => setFormData({...formData, dietary: e.target.value})}
+                                            value={formData.comment}
+                                            onChange={(e) => setFormData({...formData, comment: e.target.value})}
                                         />
                                     </div>
 
@@ -774,13 +967,32 @@ export default function Design9() {
                                 </>
                             )}
 
-                            <div className="text-center pt-6">
-                                <button
-                                    type="submit"
-                                    className="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 text-white px-16 py-4 rounded-3xl text-2xl font-black hover:from-pink-600 hover:via-purple-600 hover:to-blue-600 transition-all transform hover:scale-110 hover:rotate-2 shadow-2xl animate-pulse"
-                                >💌 Elküld
-                                </button>
-                            </div>
+                            {submitStatus === 'success' ? (
+                                <div className="text-center pt-6 space-y-4">
+                                    <div className="text-6xl animate-bounce"></div>
+                                    <p className="text-2xl font-black text-green-600">Köszönjük! Megkaptuk a visszajelzésed!</p>
+                                </div>
+                            ) : submitStatus === 'error' ? (
+                                <div className="text-center pt-6 space-y-4">
+                                    <div className="text-6xl">😥</div>
+                                    <p className="text-2xl font-black text-red-600">Hoppá! Valami hiba történt.</p>
+                                    <button
+                                        type="button"
+                                        onClick={() => setSubmitStatus('idle')}
+                                        className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-10 py-3 rounded-2xl text-lg font-black hover:scale-105 transition-transform shadow-xl"
+                                    >Próbáld újra
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="text-center pt-6">
+                                    <button
+                                        type="submit"
+                                        disabled={submitStatus === 'loading'}
+                                        className="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 text-white px-16 py-4 rounded-3xl text-2xl font-black hover:from-pink-600 hover:via-purple-600 hover:to-blue-600 transition-all transform hover:scale-110 hover:rotate-2 shadow-2xl disabled:opacity-50 disabled:hover:scale-100 disabled:hover:rotate-0"
+                                    >{submitStatus === 'loading' ? '⏳ Küldés...' : '💌 Elküld'}
+                                    </button>
+                                </div>
+                            )}
                         </form>
                     </div>
                 </div>
@@ -891,20 +1103,20 @@ export default function Design9() {
 
                 <div className="relative container mx-auto px-6 text-center">
                     <div className="flex justify-center space-x-3 text-6xl mb-6">
-                        <span className="animate-bounce">🥙</span>
+                        <span className="animate-bounce">🍷</span>
                         <span className="animate-pulse">💕</span>
-                        <span className="animate-bounce" style={{animationDelay: '0.5s'}}>🍷️</span>
+                        <span className="animate-bounce" style={{animationDelay: '0.5s'}}>🥙️</span>
                     </div>
                     <h3 className="text-5xl font-black mb-6 transform -rotate-1"
                         style={{fontFamily: 'Dancing Script, cursive'}}>
-                        Marci & Gréti
+                        Gréti &  Marci
                     </h3>
                     <p className="text-2xl font-bold mb-4">SEP 19, 2026</p>
-                    <p className="text-xl mb-8">Szent Erzsébet templom + Podmaniczky Kastély</p>
+                    <p className="text-xl mb-8">Szent Erzsébet templom ● Podmaniczky Kastély</p>
                     <div
                         className="bg-white/20 backdrop-blur-sm rounded-3xl p-6 max-w-2xl mx-auto transform rotate-1 hover:-rotate-1 transition-transform">
                         <p className="text-2xl font-black">
-                            Ünnepeljük örök húségünk legendás megborulással!
+                            Ünnepeljük örök hűségünk legendás megborulással!
                         </p>
                     </div>
                 </div>
