@@ -1,6 +1,5 @@
 'use client';
 
-import Link from "next/link";
 import {useEffect, useRef, useState} from "react";
 
 // Custom hook for scroll animations
@@ -21,13 +20,14 @@ function useScrollAnimation() {
             }
         );
 
-        if (elementRef.current) {
-            observer.observe(elementRef.current);
+        const el = elementRef.current;
+        if (el) {
+            observer.observe(el);
         }
 
         return () => {
-            if (elementRef.current) {
-                observer.unobserve(elementRef.current);
+            if (el) {
+                observer.unobserve(el);
             }
         };
     }, []);
@@ -36,40 +36,41 @@ function useScrollAnimation() {
 }
 
 function CountdownTimer({targetDate}: { targetDate: string }) {
-    const [timeLeft, setTimeLeft] = useState({
-        days: 1,
-        hours: 2,
-        minutes: 0
-    });
+    const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number } | null>(null);
 
     useEffect(() => {
         const calculateTimeLeft = () => {
             const difference = +new Date(targetDate) - +new Date();
-            console.log('Time difference (ms):', difference);
 
             if (difference > 0) {
-                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
-                const minutes = Math.floor((difference / 1000 / 60) % 60);
-
-                console.log('Countdown:', {days, hours, minutes});
-
-                setTimeLeft({days, hours, minutes});
+                setTimeLeft({
+                    days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+                    hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+                    minutes: Math.floor((difference / 1000 / 60) % 60),
+                });
             } else {
-                console.log('Target date reached or passed');
                 setTimeLeft({days: 0, hours: 0, minutes: 0});
             }
         };
 
-        console.log('Countdown started for:', targetDate);
         calculateTimeLeft();
-        const timer = setInterval(calculateTimeLeft, 1000);
+        const timer = setInterval(calculateTimeLeft, 60000);
 
-        return () => {
-            console.log('Countdown cleanup');
-            clearInterval(timer);
-        };
+        return () => clearInterval(timer);
     }, [targetDate]);
+
+    if (!timeLeft) {
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {['Nap', 'Óra', 'Perc'].map((label) => (
+                    <div key={label} className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
+                        <div className="text-4xl md:text-5xl font-black">--</div>
+                        <div className="text-sm font-bold uppercase tracking-wide">{label}</div>
+                    </div>
+                ))}
+            </div>
+        );
+    }
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -181,6 +182,7 @@ export default function Design9() {
         try {
             await fetch('https://script.google.com/macros/s/AKfycbxPj2_kUfrY_dnNjfTjmeI5RS0aWcAHPMFwDA66VETBX6VelaTX5JfsDCM112c2TKS5hQ/exec', {
                 method: 'POST',
+                mode: 'no-cors',
                 body: JSON.stringify(formData),
             });
             localStorage.setItem('rsvp-data', JSON.stringify(formData));
@@ -229,11 +231,11 @@ export default function Design9() {
             <nav className="bg-white/95 backdrop-blur-sm shadow-lg border-b-4 border-pink-300 sticky top-0 z-50">
                 <div className="container mx-auto px-6 py-4">
                     <div className="flex justify-between items-center">
-                        <Link href="/"
-                              className="text-pink-600 hover:text-pink-700 transition-colors font-bold flex items-center transform hover:scale-105">
+                        <a href="#home"
+                           className="text-pink-600 hover:text-pink-700 transition-colors font-bold flex items-center transform hover:scale-105">
                             <span className="mr-2 text-2xl">💖</span>
                             Gréti & Marci
-                        </Link>
+                        </a>
                         <div className="hidden md:flex space-x-4">
                             <a href="#home"
                                className="text-pink-600 hover:text-white hover:bg-pink-600 transition-all font-bold transform hover:scale-110 bg-pink-100 px-4 py-2 rounded-full shadow-md border-2 border-pink-300">💍</a>
@@ -243,8 +245,8 @@ export default function Design9() {
                                className="text-blue-600 hover:text-white hover:bg-blue-600 transition-all font-bold transform hover:scale-110 bg-blue-100 px-4 py-2 rounded-full shadow-md border-2 border-blue-300">🍾</a>
                             <a href="#rsvp"
                                className="text-green-600 hover:text-white hover:bg-green-600 transition-all font-bold transform hover:scale-110 bg-green-100 px-4 py-2 rounded-full shadow-md border-2 border-green-300">💌</a>
-                            <a href="#registry"
-                               className="text-orange-600 hover:text-white hover:bg-orange-600 transition-all font-bold transform hover:scale-110 bg-orange-100 px-4 py-2 rounded-full shadow-md border-2 border-orange-300">🎁</a>
+                            <a href="#timeline"
+                               className="text-orange-600 hover:text-white hover:bg-orange-600 transition-all font-bold transform hover:scale-110 bg-orange-100 px-4 py-2 rounded-full shadow-md border-2 border-orange-300">📋</a>
                         </div>
                     </div>
                 </div>
@@ -401,50 +403,6 @@ export default function Design9() {
                     } alt="Our Story"
                          className="mx-auto mb-12 rounded-3xl shadow-2xl transform hover:scale-105 transition-transform duration-500"/>
 
-                    {/*<div className="grid md:grid-cols-2 gap-16 items-center">*/}
-                    {/*  <div>*/}
-                    {/*    <div className="bg-white rounded-3xl p-6 shadow-2xl transform rotate-2 hover:-rotate-1 transition-transform duration-500">*/}
-                    {/*      <div className="bg-gradient-to-br from-yellow-200 via-pink-200 to-purple-300 h-80 rounded-2xl flex items-center justify-center relative overflow-hidden">*/}
-                    {/*        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/20 to-transparent"></div>*/}
-                    {/*        <div className="relative text-center">*/}
-                    {/*          <div className="text-8xl mb-4 animate-spin" style={{animationDuration: '4s'}}>🎪</div>*/}
-                    {/*          <p className="text-xl font-black text-purple-800">ESCAPE ROOM</p>*/}
-                    {/*          <p className="text-lg font-bold text-pink-700">Where we got stuck together... literally!</p>*/}
-                    {/*        </div>*/}
-                    {/*        /!* Floating elements *!/*/}
-                    {/*        <div className="absolute top-2 right-2 text-2xl animate-bounce">⭐</div>*/}
-                    {/*        <div className="absolute bottom-2 left-2 text-xl animate-pulse">🔐</div>*/}
-                    {/*      </div>*/}
-                    {/*      <div className="mt-4 text-center bg-gradient-to-r from-pink-100 to-purple-100 rounded-xl p-3 transform -rotate-1">*/}
-                    {/*        <p className="text-purple-700 font-black">"Escaped the room, but couldn't escape love!" 💕</p>*/}
-                    {/*      </div>*/}
-                    {/*    </div>*/}
-                    {/*  </div>*/}
-                    {/*  <div>*/}
-                    {/*    <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-xl transform -rotate-1 hover:rotate-1 transition-transform duration-500">*/}
-                    {/*      <h3 className="text-5xl font-black mb-6 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent" style={{fontFamily: 'Dancing Script, cursive'}}>*/}
-                    {/*        Plot Twist: We're Perfect Together!*/}
-                    {/*      </h3>*/}
-                    {/*      <div className="space-y-6">*/}
-                    {/*        <div className="flex items-start bg-gradient-to-r from-pink-100 to-purple-100 rounded-2xl p-4 transform rotate-1">*/}
-                    {/*          <span className="text-3xl mr-3 mt-1 animate-spin" style={{animationDuration: '3s'}}>🧩</span>*/}
-                    {/*          <p className="text-lg leading-relaxed text-purple-800 font-medium">*/}
-                    {/*            We met at an escape room birthday party where we got paired together for "The Haunted Carnival" challenge. After 90 minutes of Ruby's creative chaos and Felix's logical puzzles, we escaped with 2 seconds to spare... and phone numbers exchanged!*/}
-                    {/*          </p>*/}
-                    {/*        </div>*/}
-                    {/*        <div className="flex items-start bg-gradient-to-r from-blue-100 to-pink-100 rounded-2xl p-4 transform -rotate-1">*/}
-                    {/*          <span className="text-3xl mr-3 mt-1 animate-bounce">🎨</span>*/}
-                    {/*          <p className="text-lg leading-relaxed text-blue-800 font-medium">*/}
-                    {/*            Three years of adventures later—from midnight donut runs to building the world's most elaborate blanket forts—Felix proposed during a scavenger hunt he designed around Austin. The final clue led Ruby to a photo booth filled with all our silly memories and one very important question!*/}
-                    {/*          </p>*/}
-                    {/*        </div>*/}
-                    {/*      </div>*/}
-                    {/*      <div className="mt-8 text-center bg-gradient-to-r from-yellow-200 to-orange-200 rounded-2xl p-4 transform rotate-1">*/}
-                    {/*        <p className="text-purple-700 italic font-black text-xl">"Life's too short for boring love stories!" 🌈</p>*/}
-                    {/*      </div>*/}
-                    {/*    </div>*/}
-                    {/*  </div>*/}
-                    {/*</div>*/}
                 </div>
             </section>
 
@@ -470,7 +428,6 @@ export default function Design9() {
                             <span className="text-5xl animate-spin" style={{animationDuration: '3s'}}>🎊</span>
                         </div>
                     </div>
-
                     <div className="grid md:grid-cols-2 gap-12">
                         {/* Ceremony */}
                         <div
@@ -601,20 +558,6 @@ export default function Design9() {
                         </div>
 
 
-                        {/*<div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 transform rotate-2 hover:rotate-0 transition-transform">*/}
-                        {/*  <div className="text-center mb-4">*/}
-                        {/*    <div className="text-4xl mb-2 animate-pulse">🏙️</div>*/}
-                        {/*    <h4 className="text-2xl font-black">DOWNTOWN AUSTIN</h4>*/}
-                        {/*  </div>*/}
-                        {/*  <div className="space-y-2 text-sm font-bold">*/}
-                        {/*    <p><span className="text-yellow-200">DISTANCE:</span> 10 minutes to venue</p>*/}
-                        {/*    <p><span className="text-yellow-200">PERKS:</span> Live music & food scene</p>*/}
-                        {/*    <p><span className="text-yellow-200">STYLE:</span> Hip & happening</p>*/}
-                        {/*  </div>*/}
-                        {/*  <button className="mt-4 w-full bg-white text-pink-600 py-2 font-black rounded-xl hover:bg-yellow-200 transition-colors">*/}
-                        {/*    EXPLORE OPTIONS*/}
-                        {/*  </button>*/}
-                        {/*</div>*/}
 
                         <div className="grid md:grid-cols-2 gap-8 justify-between align-middle ">
                             <div
@@ -628,9 +571,6 @@ export default function Design9() {
                                     <p><span className="text-yellow-200 text-m">Ha nagyon kell:</span> Keresd fel pesti rokonaid/barátaid vagy szólj nekünk.</p>
 
                                 </div>
-                                {/*<button className="mt-4 w-full bg-white text-purple-600 py-2 font-black rounded-xl hover:bg-yellow-200 transition-colors">*/}
-                                {/*  BOOK THE FUN!*/}
-                                {/*</button>*/}
                             </div>
 
 
@@ -647,9 +587,6 @@ export default function Design9() {
                                 <div className="space-y-2 text-xl font-bold">
                                     <p><span className="text-yellow-200">Közben: </span>A templom és a kastély közt gondoskodunk saját buszról</p>
                                 </div>
-                                {/*<div className="mt-4 text-center text-yellow-200 text-sm font-black">*/}
-                                {/*  "Let's keep the party going safely!" 🎉*/}
-                                {/*</div>*/}
                             </div>
                         </div>
                     </div>
@@ -813,7 +750,7 @@ export default function Design9() {
                                 </button>
                             </div>
                         )}
-                        <form onSubmit={handleSubmit} className="space-y-8">
+                        <form onSubmit={handleSubmit} className="space-y-8" inert={formLocked || undefined}>
                             <div className="grid md:grid-cols-2 gap-8">
                                 <div className="transform -rotate-1 hover:rotate-0 transition-transform relative z-10" ref={nameInputRef}>
                                     <label className="block text-purple-800 font-black mb-3 text-lg flex items-center">
@@ -908,21 +845,34 @@ export default function Design9() {
 
                             {formData.attendance === 'yes' && (
                                 <>
-                                    <div className="transform rotate-1 hover:-rotate-1 transition-transform">
+                                    <div className="transform rotate-1 hover:-rotate-1 transition-transform md:w-1/2">
                                         <label
                                             className="block text-purple-800 font-black mb-3 text-lg flex items-center">
                                             <span className="text-2xl mr-2 animate-bounce">👥</span>
                                             Hány fő?
                                         </label>
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            max="10"
-                                            className="w-full p-4 border-4 border-purple-300 rounded-2xl focus:outline-none focus:border-purple-500 bg-white/90 text-lg font-bold transform hover:scale-105 transition-transform"
-                                            value={formData.guests}
-                                            onChange={(e) => setFormData({...formData, guests: parseInt(e.target.value) || 1})}
-                                            required
-                                        />
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({...formData, guests: Math.max(1, (Number(formData.guests) || 1) - 1)})}
+                                                className="w-14 h-14 flex items-center justify-center border-4 border-purple-300 rounded-2xl bg-white/90 text-2xl font-black text-purple-600 hover:bg-purple-100 hover:scale-110 transition-all"
+                                            >−</button>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="10"
+                                                className="flex-1 p-4 border-4 border-purple-300 rounded-2xl focus:outline-none focus:border-purple-500 bg-white/90 text-xl font-black text-center transition-transform [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                value={formData.guests}
+                                                onChange={(e) => setFormData({...formData, guests: e.target.value === '' ? '' as unknown as number : parseInt(e.target.value)})}
+                                                onBlur={(e) => { if (!e.target.value || parseInt(e.target.value) < 1) setFormData({...formData, guests: 1}); }}
+                                                required
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({...formData, guests: Math.min(10, (Number(formData.guests) || 1) + 1)})}
+                                                className="w-14 h-14 flex items-center justify-center border-4 border-purple-300 rounded-2xl bg-white/90 text-2xl font-black text-purple-600 hover:bg-purple-100 hover:scale-110 transition-all"
+                                            >+</button>
+                                        </div>
                                     </div>
 
                                     <div className="transform rotate-1 hover:-rotate-1 transition-transform">
@@ -940,36 +890,12 @@ export default function Design9() {
                                         />
                                     </div>
 
-                                    {/*<div className="bg-gradient-to-r from-pink-200 to-purple-200 rounded-3xl p-6 transform -rotate-1 hover:rotate-0 transition-transform">*/}
-                                    {/*  <h4 className="text-2xl font-black text-purple-800 mb-4 flex items-center">*/}
-                                    {/*    <span className="text-3xl mr-2 animate-spin" style={{animationDuration: '2s'}}>🎮</span>*/}
-                                    {/*    Party Activities!*/}
-                                    {/*  </h4>*/}
-                                    {/*  <div className="grid md:grid-cols-2 gap-4">*/}
-                                    {/*    <label className="flex items-center text-purple-700 font-bold transform hover:scale-105 transition-transform">*/}
-                                    {/*      <input type="checkbox" className="mr-3 w-5 h-5 text-purple-600 rounded" />*/}
-                                    {/*      <span>🎪 Pre-party carnival games (1:00 PM)</span>*/}
-                                    {/*    </label>*/}
-                                    {/*    <label className="flex items-center text-purple-700 font-bold transform hover:scale-105 transition-transform">*/}
-                                    {/*      <input type="checkbox" className="mr-3 w-5 h-5 text-purple-600 rounded" />*/}
-                                    {/*      <span>📸 Crazy photo booth marathon</span>*/}
-                                    {/*    </label>*/}
-                                    {/*    <label className="flex items-center text-purple-700 font-bold transform hover:scale-105 transition-transform">*/}
-                                    {/*      <input type="checkbox" className="mr-3 w-5 h-5 text-purple-600 rounded" />*/}
-                                    {/*      <span>🕺 Dance-off competition</span>*/}
-                                    {/*    </label>*/}
-                                    {/*    <label className="flex items-center text-purple-700 font-bold transform hover:scale-105 transition-transform">*/}
-                                    {/*      <input type="checkbox" className="mr-3 w-5 h-5 text-purple-600 rounded" />*/}
-                                    {/*      <span>🎨 DIY craft corner chaos</span>*/}
-                                    {/*    </label>*/}
-                                    {/*  </div>*/}
-                                    {/*</div>*/}
                                 </>
                             )}
 
                             {submitStatus === 'success' ? (
                                 <div className="text-center pt-6 space-y-4">
-                                    <div className="text-6xl animate-bounce"></div>
+                                    <div className="text-6xl animate-bounce">🎉</div>
                                     <p className="text-2xl font-black text-green-600">Köszönjük! Megkaptuk a visszajelzésed!</p>
                                 </div>
                             ) : submitStatus === 'error' ? (
@@ -997,94 +923,6 @@ export default function Design9() {
                     </div>
                 </div>
             </section>
-
-            {/* Registry Section */}
-            {/*<section id="registry" className="py-20 bg-gradient-to-br from-yellow-100 via-pink-100 to-purple-100">*/}
-            {/*  <div className="container mx-auto px-6 max-w-6xl text-center">*/}
-            {/*    <div className="text-center mb-16">*/}
-            {/*      <h2 className="text-7xl font-black bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent mb-6 transform rotate-1" style={{fontFamily: 'Dancing Script, cursive'}}>*/}
-            {/*        Gifts for Our Adventure!*/}
-            {/*      </h2>*/}
-            {/*      <div className="flex justify-center space-x-3 mb-8">*/}
-            {/*        <span className="text-5xl animate-bounce">🎁</span>*/}
-            {/*        <span className="text-5xl animate-spin" style={{animationDuration: '4s'}}>🌟</span>*/}
-            {/*        <span className="text-5xl animate-bounce" style={{animationDelay: '0.5s'}}>🎁</span>*/}
-            {/*      </div>*/}
-            {/*    </div>*/}
-
-            {/*    <p className="text-2xl font-bold text-purple-600 mb-12 max-w-4xl mx-auto transform -rotate-1">*/}
-            {/*      Your presence is the best present! But if you want to add to our fun,*/}
-            {/*      we've got some wild ideas that'll help us keep the party going at home!*/}
-            {/*    </p>*/}
-
-            {/*    <div className="grid md:grid-cols-3 gap-10">*/}
-            {/*      <div className="bg-white rounded-3xl p-8 shadow-2xl transform -rotate-2 hover:rotate-0 transition-transform duration-500 border-4 border-pink-300">*/}
-            {/*        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-pink-300 to-purple-400 mx-auto mb-6 flex items-center justify-center shadow-lg transform rotate-12 hover:rotate-0 transition-transform">*/}
-            {/*          <span className="text-5xl animate-bounce">🎮</span>*/}
-            {/*        </div>*/}
-            {/*        <h3 className="text-2xl font-black text-pink-600 mb-4">FUN & GAMES</h3>*/}
-            {/*        <p className="text-purple-700 font-bold mb-6">Board games, video games, party supplies!</p>*/}
-            {/*        <div className="bg-pink-100 rounded-2xl p-4 mb-6 transform rotate-1">*/}
-            {/*          <p className="text-sm font-bold text-pink-800">*/}
-            {/*            <strong>Target:</strong> Board games & party gear<br />*/}
-            {/*            <strong>GameStop:</strong> Video game adventures<br />*/}
-            {/*            <strong>Party City:</strong> Celebration supplies*/}
-            {/*          </p>*/}
-            {/*        </div>*/}
-            {/*        <button className="bg-pink-500 text-white px-6 py-3 rounded-2xl hover:bg-pink-600 transition-colors font-black transform hover:scale-105">*/}
-            {/*          🎮 GAME ON!*/}
-            {/*        </button>*/}
-            {/*      </div>*/}
-
-            {/*      <div className="bg-white rounded-3xl p-8 shadow-2xl transform rotate-2 hover:rotate-0 transition-transform duration-500 border-4 border-purple-300">*/}
-            {/*        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 mx-auto mb-6 flex items-center justify-center shadow-lg transform -rotate-12 hover:rotate-0 transition-transform">*/}
-            {/*          <span className="text-5xl animate-spin" style={{animationDuration: '3s'}}>🏠</span>*/}
-            {/*        </div>*/}
-            {/*        <h3 className="text-2xl font-black text-purple-600 mb-4">COLORFUL HOME</h3>*/}
-            {/*        <p className="text-blue-700 font-bold mb-6">Funky furniture & rainbow decorations!</p>*/}
-            {/*        <div className="bg-purple-100 rounded-2xl p-4 mb-6 transform -rotate-1">*/}
-            {/*          <p className="text-sm font-bold text-purple-800">*/}
-            {/*            <strong>IKEA:</strong> Colorful & affordable finds<br />*/}
-            {/*            <strong>Urban Outfitters:</strong> Quirky home decor<br />*/}
-            {/*            <strong>World Market:</strong> Global fun vibes*/}
-            {/*          </p>*/}
-            {/*        </div>*/}
-            {/*        <button className="bg-purple-500 text-white px-6 py-3 rounded-2xl hover:bg-purple-600 transition-colors font-black transform hover:scale-105">*/}
-            {/*          🏠 DECORATE!*/}
-            {/*        </button>*/}
-            {/*      </div>*/}
-
-            {/*      <div className="bg-white rounded-3xl p-8 shadow-2xl transform -rotate-2 hover:rotate-0 transition-transform duration-500 border-4 border-orange-300">*/}
-            {/*        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-orange-400 to-yellow-400 mx-auto mb-6 flex items-center justify-center shadow-lg transform rotate-12 hover:rotate-0 transition-transform">*/}
-            {/*          <span className="text-5xl animate-pulse">✈️</span>*/}
-            {/*        </div>*/}
-            {/*        <h3 className="text-2xl font-black text-orange-600 mb-4">EPIC ADVENTURES</h3>*/}
-            {/*        <p className="text-yellow-700 font-bold mb-6">Honeymoon fun fund!</p>*/}
-            {/*        <div className="bg-orange-100 rounded-2xl p-4 mb-6 transform rotate-1">*/}
-            {/*          <p className="text-sm font-bold text-orange-800">*/}
-            {/*            <strong>Destination:</strong> Japan (theme parks!)<br />*/}
-            {/*            <strong>Activities:</strong> Tokyo Disney, food tours<br />*/}
-            {/*            <strong>Goal:</strong> Maximum fun & kawaii overload!*/}
-            {/*          </p>*/}
-            {/*        </div>*/}
-            {/*        <button className="bg-orange-500 text-white px-6 py-3 rounded-2xl hover:bg-orange-600 transition-colors font-black transform hover:scale-105">*/}
-            {/*          ✈️ FUND FUN!*/}
-            {/*        </button>*/}
-            {/*      </div>*/}
-            {/*    </div>*/}
-
-            {/*    <div className="mt-12 bg-gradient-to-r from-pink-300 via-purple-300 to-blue-300 rounded-3xl p-8 shadow-2xl transform rotate-1 hover:-rotate-1 transition-transform duration-500">*/}
-            {/*      <h3 className="text-4xl font-black text-white mb-4 flex items-center justify-center">*/}
-            {/*        <span className="text-5xl mr-3 animate-spin" style={{animationDuration: '2s'}}>🎪</span>*/}
-            {/*        Support Local Fun!*/}
-            {/*      </h3>*/}
-            {/*      <p className="text-xl font-bold text-white max-w-3xl mx-auto">*/}
-            {/*        We love supporting local artists, small businesses, and Austin's creative community!*/}
-            {/*        Anything handmade, locally sourced, or just plain weird and wonderful would make us super happy! 🌈*/}
-            {/*      </p>*/}
-            {/*    </div>*/}
-            {/*  </div>*/}
-            {/*</section>*/}
 
             {/* Footer */}
             <footer
