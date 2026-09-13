@@ -337,7 +337,7 @@ export default function Design9() {
                                 className="flex items-center justify-center bg-gradient-to-r from-pink-200 to-purple-200 rounded-2xl p-3">
                                 <span className="text-lg text-purple-700 font-bold">15:30 Egyházi szertartás</span>
                             </div>
-                            <p className="text-lg text-blue-600 mb-4">1173 Árpád Házi Szent Erzsébet park</p>
+                            <p className="text-lg text-blue-600 mb-4">1171 Árpád Házi Szent Erzsébet park</p>
                             <div
                                 className="flex items-center justify-center bg-gradient-to-r from-pink-200 to-purple-200 rounded-2xl p-3">
                                 <span className="text-lg text-purple-700 font-bold">17:00 Polgári szertartás, Vacsora és Party</span>
