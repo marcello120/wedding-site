@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function CameraPage() {
-  redirect("https://example.com");
+  redirect("https://kahoot.it/?pin=555045&refer_method=link");
 }
